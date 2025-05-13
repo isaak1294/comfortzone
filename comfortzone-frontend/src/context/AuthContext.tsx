@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE;
 
 interface User {
   email: string;
@@ -33,7 +34,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const stored = localStorage.getItem('authToken');
     if (stored) {
         setToken(stored);
-        fetch('http://localhost:4000/api/me', {
+        fetch(`${API_BASE}/api/me`, {
         headers: { Authorization: `Bearer ${stored}` },
         })
         .then((res) => res.json())
@@ -55,7 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const login = async (email: string, password: string): Promise<boolean> => {
     try {
-        const res = await fetch('http://localhost:4000/api/login', {
+        const res = await fetch(`${API_BASE}/api/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
@@ -91,7 +92,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     profilePicture?: string
     ): Promise<boolean> => {
     try {
-        const res = await fetch('http://localhost:4000/api/register', {
+        const res = await fetch(`${API_BASE}/api/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password, username, profilePicture }),

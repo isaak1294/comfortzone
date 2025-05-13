@@ -5,6 +5,8 @@ import { useAuth } from '@/context/AuthContext'
 import GroupsDisplay from '@/components/GroupDisplay';
 import CreateGroupModal from '@/components/CreateGroupModal';
 
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE;
+
 interface Post {
   id: number;
   text: string;
@@ -44,7 +46,7 @@ export default function SocialPage() {
     if (!token) return;
 
     try {
-      const response = await fetch('http://localhost:4000/api/groups/my-groups', {
+      const response = await fetch(`${API_BASE}/api/groups/my-groups`, {
         method: 'GET',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -66,7 +68,7 @@ export default function SocialPage() {
     if(!newGroupName.trim()) return;
 
     try {
-      const response = await fetch('http://localhost:4000/api/groups', {
+      const response = await fetch(`${API_BASE}/api/groups`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
