@@ -13,4 +13,34 @@ model User {
   password       String
   username       String
   profilePicture String?  // optional
+  groups         GroupMember[]
+}
+
+model Group {
+  id              String   @id @default(cuid())
+  name            String
+  description     String?
+  createdAt       DateTime @default(now())
+  members         GroupMember[]
+  challenges      Challenge[]
+}
+
+model GroupMember {
+  id        String   @id @default(cuid())
+  userId    String
+  groupId   String
+  joinedAt  DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+  group     Group    @relation(fields: [groupId], references: [id])
+
+  @@unique([userId, groupId])
+}
+
+model Challenge {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  date        DateTime @default(now())
+  groupId     String
+  group       Group    @relation(fields: [groupId], references: [id])
 }

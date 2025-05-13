@@ -35,15 +35,15 @@ router.post('/login', async (req, res) => {
 
   const user = await prisma.user.findUnique({ where: { email } });
   if (!user) {
-    return res.status(400).json({ error: 'Invalid credentials' }); // ✅ JSON
+    return res.status(400).json({ error: 'Invalid credentials' });
   }
 
   const match = await bcrypt.compare(password, user.password);
   if (!match) {
-    return res.status(400).json({ error: 'Invalid credentials' }); // ✅ JSON
+    return res.status(400).json({ error: 'Invalid credentials' });
   }
 
-  const token = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: '1h' });
+  const token = jwt.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
   return res.json({
     token,
