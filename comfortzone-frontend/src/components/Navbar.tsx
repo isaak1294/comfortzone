@@ -3,17 +3,36 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import { useEffect, useState } from 'react';
+
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE;
 
 const tabs = [
-  { name: 'Home', href: '/'},
+  { name: 'Home', href: '/' },
   { name: 'Challenges', href: '/challenges' },
   { name: 'Account', href: '/account' },
   { name: 'Social', href: '/social' },
+  { name: 'Messages', href: '/social/message-center' }, // Added
 ];
 
 export default function Navbar() {
   const pathname = usePathname();
-  const { isAuthenticated, login, logout } = useAuth();
+  const { isAuthenticated, token, logout } = useAuth();
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    if (isAuthenticated && token) {
+      fetch(`${API_BASE}/api/groups/my-invites`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+        .then((res) => res.json())
+        .then((invites) => {
+          const unread = invites.filter((invite: any) => !invite.read).length;
+          setUnreadCount(unread);
+        })
+        .catch((err) => console.error('Error fetching invites:', err));
+    }
+  }, [isAuthenticated, token]);
 
   return (
     <nav className="w-full bg-stone-600 shadow-md backdrop-blur-md sticky top-0 z-10">
@@ -21,7 +40,7 @@ export default function Navbar() {
         <h1 className="text-xl font-bold text-gray-800">Get Out There</h1>
         <ul className="flex space-x-6">
           {tabs.map((tab) => (
-            <li key={tab.name}>
+            <li key={tab.name} className="relative">
               <Link
                 href={tab.href}
                 className={`text-gray-700 hover:text-blue-600 font-medium ${
@@ -29,18 +48,23 @@ export default function Navbar() {
                 }`}
               >
                 {tab.name}
+                {tab.name === 'Messages' && unreadCount > 0 && (
+                  <span className="absolute -top-2 -right-4 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                    {unreadCount}
+                  </span>
+                )}
               </Link>
             </li>
           ))}
           <li>
             {isAuthenticated ? (
-            <button onClick={logout} className="text-sm text-red-500 underline">
+              <button onClick={logout} className="text-sm text-red-500 underline">
                 Log out
-            </button>
+              </button>
             ) : (
-            <a href="/login" className="text-sm text-blue-600 underline">
+              <a href="/login" className="text-sm text-blue-600 underline">
                 Sign in
-            </a>
+              </a>
             )}
           </li>
         </ul>

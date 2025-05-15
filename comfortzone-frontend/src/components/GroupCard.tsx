@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 interface GroupCardProps {
     id: string;
     name: string;
@@ -10,7 +12,7 @@ interface GroupCardProps {
     };
 }
 
-export default function GroupCard({ name, description, currentChallenge }: GroupCardProps) {
+export default function GroupCard({ id, name, description, currentChallenge }: GroupCardProps) {
     return (
         <div className="min-w[250px] border border-gray-300 rounded-lg p-4 bg-white shadow-sm">
             <h3 className="font-bold text-lg mb-1">{name}</h3>
@@ -27,9 +29,11 @@ export default function GroupCard({ name, description, currentChallenge }: Group
                 <p className="text-sm text-gray-500 mb-3">No active challenge</p>
             )}
             
-            <button className="w-full px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm">
-                View Group
-            </button>
+            <Link href={`/social/groups/${id}`}>
+                <button className="w-full px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm">
+                    View Group
+                </button>
+            </Link>
         </div>
     );
 }

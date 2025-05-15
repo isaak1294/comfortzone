@@ -7,7 +7,7 @@ export default function Home() {
   const [today, setToday] = useState('');
 
   useEffect(() => {
-    setToday(dayjs().format('dddd, MMMM D, YYYY')); // e.g., "Friday, May 10, 2025"
+    setToday(dayjs().format('dddd, MMMM D, YYYY'));
   }, []);
 
   return (

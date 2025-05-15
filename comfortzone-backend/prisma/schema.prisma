@@ -8,21 +8,27 @@ datasource db {
 }
 
 model User {
-  id             String   @id @default(cuid())
-  email          String   @unique
+  id             String         @id @default(cuid())
+  email          String         @unique
   password       String
-  username       String
-  profilePicture String?  // optional
+  username       String?
+  profilePicture String?
   groups         GroupMember[]
+  completions    ChallengeCompletion[]
+  messages       GroupMessage[]
+  sentInvites    MessageCenter[] @relation("SentInvites")
+  receivedInvites MessageCenter[] @relation("ReceivedInvites")
 }
 
 model Group {
-  id              String   @id @default(cuid())
+  id              String         @id @default(cuid())
   name            String
   description     String?
-  createdAt       DateTime @default(now())
+  createdAt       DateTime       @default(now())
   members         GroupMember[]
   challenges      Challenge[]
+  messages        GroupMessage[]
+  invites         MessageCenter[] // Added this line
 }
 
 model GroupMember {
@@ -36,11 +42,54 @@ model GroupMember {
   @@unique([userId, groupId])
 }
 
+
 model Challenge {
   id          String   @id @default(cuid())
   title       String
   description String
-  date        DateTime @default(now())
+  date        DateTime
+  groupId     String?
+  group       Group?   @relation(fields: [groupId], references: [id])
+  completions ChallengeCompletion[] // Added this relation
+
+  @@unique([groupId, date])
+}
+
+model ChallengeCompletion {
+  id         String   @id @default(cuid())
+  userId     String
+  date       DateTime
+  completed  Boolean  @default(true)
+  completedAt DateTime @default(now())
+  challengeId String 
+  challenge  Challenge @relation(fields: [challengeId], references: [id])
+  user       User     @relation(fields: [userId], references: [id])
+  @@unique([userId, date])
+}
+
+// New model for group messages
+model GroupMessage {
+  id        String   @id @default(cuid())
+  content   String
+  createdAt DateTime @default(now())
+  userId    String
+  groupId   String
+  user      User     @relation(fields: [userId], references: [id])
+  group     Group    @relation(fields: [groupId], references: [id])
+}
+
+model MessageCenter {
+  id          String   @id @default(cuid())
+  senderId    String
+  recipientEmail String
   groupId     String
+  message     String   @default("You've been invited to join this group!")
+  createdAt   DateTime @default(now())
+  read        Boolean  @default(false)
+  accepted    Boolean? // null = pending, true = accepted, false = declined
+  sender      User     @relation("SentInvites", fields: [senderId], references: [id])
+  recipient   User?    @relation("ReceivedInvites", fields: [recipientEmail], references: [email])
   group       Group    @relation(fields: [groupId], references: [id])
+
+  @@unique([senderId, recipientEmail, groupId])
 }
