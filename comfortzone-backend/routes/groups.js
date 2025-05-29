@@ -86,7 +86,7 @@ router.post('/invites/:inviteId/respond', requireAuth, async (req, res) => {
   try {
     const invite = await prisma.messageCenter.findUnique({
       where: { id: req.params.inviteId },
-      include: { group: true },
+      include: { group: true, sender: true },
     });
 
     if (!invite || invite.recipientEmail !== req.user.email) {
@@ -94,7 +94,15 @@ router.post('/invites/:inviteId/respond', requireAuth, async (req, res) => {
     }
 
     if (invite.accepted !== null) {
-      return res.status(400).json({ error: 'Invite already responded to' });
+      return res.status(400).json({ error: 'Request already responded to' });
+    }
+
+    // If declined, delete the invite
+    if (!accepted) {
+      await prisma.messageCenter.delete({
+        where: { id: req.params.inviteId }
+      });
+      return res.json({ message: 'Invite declined and removed' });
     }
 
     const updatedInvite = await prisma.$transaction(async (tx) => {
@@ -104,12 +112,36 @@ router.post('/invites/:inviteId/respond', requireAuth, async (req, res) => {
       });
 
       if (accepted) {
-        await tx.groupMember.create({
-          data: {
-            userId: req.user.id,
-            groupId: invite.groupId,
-          },
-        });
+        if (invite.type === 'group_invite' && invite.groupId) {
+          await tx.groupMember.create({
+            data: {
+              userId: req.user.id,
+              groupId: invite.groupId,
+            },
+          });
+        } else if (invite.type === 'friend_request') {
+          // Check if friendship already exists in either direction
+          const existingFriendship = await tx.friendship.findFirst({
+            where: {
+              OR: [
+                { userId: invite.senderId, friendId: req.user.id },
+                { userId: req.user.id, friendId: invite.senderId }
+              ]
+            }
+          });
+          
+          // Only create friendship if it doesn't exist
+          if (!existingFriendship) {
+            // Create bidirectional friendship - only need one record
+            await tx.friendship.create({
+              data: {
+                userId: invite.senderId,
+                friendId: req.user.id,
+                lastMessageTime: new Date() // Set initial last message time
+              },
+            });
+          }
+        }
       }
 
       return updated;
@@ -117,7 +149,7 @@ router.post('/invites/:inviteId/respond', requireAuth, async (req, res) => {
 
     res.json(updatedInvite);
   } catch (err) {
-    console.error('Error responding to invite:', err);
+    console.error('Error responding to request:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

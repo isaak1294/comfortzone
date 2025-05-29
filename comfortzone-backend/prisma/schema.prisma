@@ -7,18 +7,31 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// Update User model to include direct messages
 model User {
   id             String         @id @default(cuid())
   email          String         @unique
   password       String
   username       String         @unique
   profilePicture String?
+  bio            String?        @default("no bio")
+  emailVerified  Boolean        @default(false)
+  verificationToken String?     @unique
+  verificationTokenExpiry DateTime?
   groups         GroupMember[]
   completions    ChallengeCompletion[]
   messages       GroupMessage[]
   sentInvites    MessageCenter[] @relation("SentInvites")
   receivedInvites MessageCenter[] @relation("ReceivedInvites")
+  friends        Friendship[]    @relation("UserFriends")
+  friendOf       Friendship[]    @relation("FriendOfUser")
+  posts          Post[]
+  
+  // Add these relations for direct messages
+  sentDirectMessages     DirectMessage[] @relation("SentDirectMessages")
+  receivedDirectMessages DirectMessage[] @relation("ReceivedDirectMessages")
 }
+
 
 model Group {
   id              String         @id @default(cuid())
@@ -82,14 +95,53 @@ model MessageCenter {
   id          String   @id @default(cuid())
   senderId    String
   recipientEmail String
-  groupId     String
+  groupId     String?
   message     String   @default("You've been invited to join this group!")
   createdAt   DateTime @default(now())
   read        Boolean  @default(false)
   accepted    Boolean? // null = pending, true = accepted, false = declined
   sender      User     @relation("SentInvites", fields: [senderId], references: [id])
   recipient   User?    @relation("ReceivedInvites", fields: [recipientEmail], references: [email])
-  group       Group    @relation(fields: [groupId], references: [id])
+  group       Group?   @relation(fields: [groupId], references: [id])
+  type        String   @default("group_invite") // New field to distinguish between group invites and friend requests
 
   @@unique([senderId, recipientEmail, groupId])
+  @@unique([senderId, recipientEmail, type])
+}
+
+model Friendship {
+  id                String   @id @default(cuid())
+  userId            String
+  friendId          String
+  createdAt         DateTime @default(now())
+  lastMessageTime   DateTime? // Track when the last message was sent in this friendship
+  user              User     @relation("UserFriends", fields: [userId], references: [id])
+  friend            User     @relation("FriendOfUser", fields: [friendId], references: [id])
+
+  @@unique([userId, friendId])
+}
+
+model Post {
+  id          String   @id @default(cuid())
+  userId      String
+  content     String
+  image       String?
+  isPublic    Boolean  @default(true) // true for public, false for friends-only
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id])
+}
+
+// Add this new model for direct messages
+model DirectMessage {
+  id            String   @id @default(cuid())
+  content       String
+  createdAt     DateTime @default(now())
+  senderId      String
+  recipientId   String
+  read          Boolean  @default(false)
+  sender        User     @relation("SentDirectMessages", fields: [senderId], references: [id])
+  recipient     User     @relation("ReceivedDirectMessages", fields: [recipientId], references: [id])
+
+  @@index([senderId])
+  @@index([recipientId])
 }
