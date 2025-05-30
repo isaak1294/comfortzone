@@ -1,3 +1,4 @@
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -7,7 +8,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Update User model to include direct messages
+
 model User {
   id             String         @id @default(cuid())
   email          String         @unique
@@ -19,19 +20,17 @@ model User {
   verificationToken String?     @unique
   verificationTokenExpiry DateTime?
   groups         GroupMember[]
-  completions    ChallengeCompletion[]
+  globalCompletions GlobalChallengeCompletion[]
+  groupCompletions  GroupChallengeCompletion[]
   messages       GroupMessage[]
   sentInvites    MessageCenter[] @relation("SentInvites")
   receivedInvites MessageCenter[] @relation("ReceivedInvites")
   friends        Friendship[]    @relation("UserFriends")
   friendOf       Friendship[]    @relation("FriendOfUser")
   posts          Post[]
-  
-  // Add these relations for direct messages
   sentDirectMessages     DirectMessage[] @relation("SentDirectMessages")
   receivedDirectMessages DirectMessage[] @relation("ReceivedDirectMessages")
 }
-
 
 model Group {
   id              String         @id @default(cuid())
@@ -39,9 +38,9 @@ model Group {
   description     String?
   createdAt       DateTime       @default(now())
   members         GroupMember[]
-  challenges      Challenge[]
+  challenges      GroupChallenge[]
   messages        GroupMessage[]
-  invites         MessageCenter[] // Added this line
+  invites         MessageCenter[]
 }
 
 model GroupMember {
@@ -55,32 +54,52 @@ model GroupMember {
   @@unique([userId, groupId])
 }
 
+model GlobalChallenge {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  date        DateTime @unique
+  completions GlobalChallengeCompletion[]
+}
 
-model Challenge {
+model GroupChallenge {
   id          String   @id @default(cuid())
   title       String
   description String
   date        DateTime
-  groupId     String?
-  group       Group?   @relation(fields: [groupId], references: [id])
-  completions ChallengeCompletion[] // Added this relation
+  groupId     String
+  group       Group     @relation(fields: [groupId], references: [id])
+  completions GroupChallengeCompletion[]
 
   @@unique([groupId, date])
 }
 
-model ChallengeCompletion {
-  id         String   @id @default(cuid())
-  userId     String
-  date       DateTime
-  completed  Boolean  @default(true)
+model GlobalChallengeCompletion {
+  id          String   @id @default(cuid())
+  userId      String
+  challengeId String
+  date        DateTime
+  completed   Boolean  @default(true)
   completedAt DateTime @default(now())
-  challengeId String 
-  challenge  Challenge @relation(fields: [challengeId], references: [id])
-  user       User     @relation(fields: [userId], references: [id])
+  user        User     @relation(fields: [userId], references: [id])
+  challenge   GlobalChallenge @relation(fields: [challengeId], references: [id])
+
   @@unique([userId, date])
 }
 
-// New model for group messages
+model GroupChallengeCompletion {
+  id          String   @id @default(cuid())
+  userId      String
+  challengeId String
+  date        DateTime
+  completed   Boolean  @default(true)
+  completedAt DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id])
+  challenge   GroupChallenge @relation(fields: [challengeId], references: [id])
+
+  @@unique([userId, challengeId])
+}
+
 model GroupMessage {
   id        String   @id @default(cuid())
   content   String
@@ -92,55 +111,54 @@ model GroupMessage {
 }
 
 model MessageCenter {
-  id          String   @id @default(cuid())
-  senderId    String
+  id             String   @id @default(cuid())
+  senderId       String
   recipientEmail String
-  groupId     String?
-  message     String   @default("You've been invited to join this group!")
-  createdAt   DateTime @default(now())
-  read        Boolean  @default(false)
-  accepted    Boolean? // null = pending, true = accepted, false = declined
-  sender      User     @relation("SentInvites", fields: [senderId], references: [id])
-  recipient   User?    @relation("ReceivedInvites", fields: [recipientEmail], references: [email])
-  group       Group?   @relation(fields: [groupId], references: [id])
-  type        String   @default("group_invite") // New field to distinguish between group invites and friend requests
+  groupId        String?
+  message        String   @default("You've been invited to join this group!")
+  createdAt      DateTime @default(now())
+  read           Boolean  @default(false)
+  accepted       Boolean?
+  sender         User     @relation("SentInvites", fields: [senderId], references: [id])
+  recipient      User?    @relation("ReceivedInvites", fields: [recipientEmail], references: [email])
+  group          Group?   @relation(fields: [groupId], references: [id])
+  type           String   @default("group_invite")
 
   @@unique([senderId, recipientEmail, groupId])
   @@unique([senderId, recipientEmail, type])
 }
 
 model Friendship {
-  id                String   @id @default(cuid())
-  userId            String
-  friendId          String
-  createdAt         DateTime @default(now())
-  lastMessageTime   DateTime? // Track when the last message was sent in this friendship
-  user              User     @relation("UserFriends", fields: [userId], references: [id])
-  friend            User     @relation("FriendOfUser", fields: [friendId], references: [id])
+  id              String   @id @default(cuid())
+  userId          String
+  friendId        String
+  createdAt       DateTime @default(now())
+  lastMessageTime DateTime?
+  user            User     @relation("UserFriends", fields: [userId], references: [id])
+  friend          User     @relation("FriendOfUser", fields: [friendId], references: [id])
 
   @@unique([userId, friendId])
 }
 
 model Post {
-  id          String   @id @default(cuid())
-  userId      String
-  content     String
-  image       String?
-  isPublic    Boolean  @default(true) // true for public, false for friends-only
-  createdAt   DateTime @default(now())
-  user        User     @relation(fields: [userId], references: [id])
+  id        String   @id @default(cuid())
+  userId    String
+  content   String
+  image     String?
+  isPublic  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
 }
 
-// Add this new model for direct messages
 model DirectMessage {
-  id            String   @id @default(cuid())
-  content       String
-  createdAt     DateTime @default(now())
-  senderId      String
-  recipientId   String
-  read          Boolean  @default(false)
-  sender        User     @relation("SentDirectMessages", fields: [senderId], references: [id])
-  recipient     User     @relation("ReceivedDirectMessages", fields: [recipientId], references: [id])
+  id          String   @id @default(cuid())
+  content     String
+  createdAt   DateTime @default(now())
+  senderId    String
+  recipientId String
+  read        Boolean  @default(false)
+  sender      User     @relation("SentDirectMessages", fields: [senderId], references: [id])
+  recipient   User     @relation("ReceivedDirectMessages", fields: [recipientId], references: [id])
 
   @@index([senderId])
   @@index([recipientId])

@@ -171,7 +171,7 @@ router.get('/user/:username', async (req, res) => {
         profilePicture: true,
         bio: true,
         // We'll also get the latest challenge completion to calculate streak
-        completions: {
+        globalCompletions: {
           orderBy: {
             completedAt: 'desc'
           },

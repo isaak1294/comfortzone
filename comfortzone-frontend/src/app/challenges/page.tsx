@@ -4,21 +4,9 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import dayjs from 'dayjs';
 import { useAuth } from '@/context/AuthContext';
+import Calendar from '@/components/Calendar';
 
-type CompletionMap = Record<
-  string,
-  { completed: boolean; completedAt: string }
->;
-
-const getDaysInMonth = (year: number, month: number) => {
-  const days = [];
-  const date = dayjs(`${year}-${month + 1}-01`);
-  const daysInMonth = date.daysInMonth();
-  for (let i = 1; i <= daysInMonth; i++) {
-    days.push(dayjs(new Date(year, month, i)));
-  }
-  return days;
-};
+type CompletionMap = Record<string, { completed: boolean; completedAt: string }>;
 
 export default function ChallengesPage() {
   const router = useRouter();
@@ -95,12 +83,10 @@ export default function ChallengesPage() {
 
   return (
     <div className="max-w-xl mx-auto mt-10 space-y-6">
-      {/* Today's Challenge Display */}
       {challenge && (
         <div className="bg-white/80 p-4 rounded-xl shadow backdrop-blur-sm">
           <h2 className="text-xl font-bold text-gray-800 mb-2">{challenge.title}</h2>
           <p className="text-gray-700 mb-4">{challenge.description}</p>
-
           {isAuthenticated && (
             <button
               onClick={toggleCompleted}
@@ -113,42 +99,7 @@ export default function ChallengesPage() {
           )}
         </div>
       )}
-
-      {/* Calendar */}
-      <div className="p-4 bg-white/80 rounded-xl shadow backdrop-blur-sm">
-        <h1 className="text-2xl font-bold text-center text-gray-800 mb-4">
-          {today.format('MMMM YYYY')}
-        </h1>
-
-        <div className="grid grid-cols-7 gap-2">
-          {getDaysInMonth(year, month).map((date) => {
-            const dateKey = date.format('YYYY-MM-DD');
-            const record = completedDays[dateKey];
-            const isComplete = record?.completed;
-            const completedAt = record?.completedAt
-              ? dayjs(record.completedAt)
-              : null;
-
-            const isRetro = isComplete && completedAt && completedAt.isAfter(date, 'day');
-
-            return (
-              <button
-                key={dateKey}
-                onClick={() => handleDayClick(date)}
-                className={`aspect-square w-full rounded-md text-sm font-medium transition-all ${
-                  isComplete
-                    ? isRetro
-                      ? 'bg-yellow-400 text-white'
-                      : 'bg-green-500 text-white'
-                    : 'bg-gray-300 text-gray-800 hover:bg-gray-400'
-                }`}
-              >
-                {date.date()}
-              </button>
-            );
-          })}
-        </div>
-      </div>
+      <Calendar year={year} month={month} completedDays={completedDays} onDayClick={handleDayClick} />
     </div>
   );
 }

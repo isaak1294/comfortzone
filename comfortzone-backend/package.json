@@ -19,6 +19,7 @@
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
     "nodemailer": "^7.0.3",
+    "prompt-sync": "^4.2.0",
     "sqlite3": "^5.1.7"
   },
   "devDependencies": {

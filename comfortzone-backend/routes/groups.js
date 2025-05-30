@@ -206,13 +206,13 @@ router.get('/:groupId', requireAuth, async (req, res) => {
                         }
                     }
                 },
-                challenges: {
+                groupChallenges: {
                     orderBy: {
                         date: 'desc'
                     },
                     take: 1,
                     include: {
-                        completions: {
+                        groupCompletions: {
                             include: {
                                 user: {
                                     select: {
@@ -257,7 +257,7 @@ router.get('/:groupId', requireAuth, async (req, res) => {
 });
 
 // Create a new challenge for a group:
-router.post('/:groupId/challenges', requireAuth, async (req, res) => {
+router.post('/:groupId/groupChallenges', requireAuth, async (req, res) => {
     const { title, description, date } = req.body;
 
     if(!title || !description) {
@@ -279,7 +279,7 @@ router.post('/:groupId/challenges', requireAuth, async (req, res) => {
             return res.status(403).json({ error: 'You are not a member of this group' });
         }
 
-        const challenge = await prisma.challenge.create({
+        const challenge = await prisma.groupChallenge.create({
             data: {
                 title,
                 description,
@@ -296,7 +296,7 @@ router.post('/:groupId/challenges', requireAuth, async (req, res) => {
 });
 
 // Complete a challenge
-router.post('/:groupId/challenges/:challengeId/complete', requireAuth, async (req, res) => {
+router.post('/:groupId/groupChallenges/:challengeId/complete', requireAuth, async (req, res) => {
     try {
         // Check membership
         const membership = await prisma.groupMember.findUnique({
@@ -313,7 +313,7 @@ router.post('/:groupId/challenges/:challengeId/complete', requireAuth, async (re
         }
 
         // Get the challenge
-        const challenge = await prisma.challenge.findUnique({
+        const challenge = await prisma.groupChallenge.findUnique({
             where: { id: req.params.challengeId }
         });
 
@@ -322,7 +322,7 @@ router.post('/:groupId/challenges/:challengeId/complete', requireAuth, async (re
         }
 
         // Create or update completion
-        const completion = await prisma.challengeCompletion.upsert({
+        const completion = await prisma.groupChallengeCompletion.upsert({
             where: {
                 userId_date: {
                     userId: req.user.id,

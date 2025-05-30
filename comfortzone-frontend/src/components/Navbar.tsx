@@ -35,7 +35,7 @@ export default function Navbar() {
   }, [isAuthenticated, token]);
 
   return (
-    <nav className="w-full bg-stone-600 shadow-md backdrop-blur-md sticky top-0 z-10">
+    <nav className="w-full bg-zinc-200 shadow-md backdrop-blur-md sticky top-0 z-10">
       <div className="max-w-4xl mx-auto flex justify-between px-4 py-3">
         <h1 className="text-xl font-bold text-gray-800">Get Out There</h1>
         <ul className="flex space-x-6">

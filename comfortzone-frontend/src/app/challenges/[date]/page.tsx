@@ -17,7 +17,7 @@ export default function ChallengeByDatePage() {
   const date = typeof rawDate === 'string' ? rawDate : rawDate?.[0] || '';
   const [challenge, setChallenge] = useState<Challenge | null>(null);
   const [completed, setCompleted] = useState(false);
-  const { token, isAuthenticated } = useAuth();
+  const { token, isAuthenticated, user } = useAuth();
   const parseddate = dayjs(date);
   const isFuture = parseddate.isAfter(dayjs(), 'day');
 
@@ -32,12 +32,12 @@ export default function ChallengeByDatePage() {
   useEffect(() => {
     if (!date) return;
 
-    fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/challenge/${date}`)
+    fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/globalChallenge/${date}`)
       .then((res) => res.json())
       .then(setChallenge);
 
     if (isAuthenticated && token) {
-      fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/completions`, {
+      fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/globalCompletions`, {
         headers: { Authorization: `Bearer ${token}` },
       })
         .then(res => res.json())
@@ -50,7 +50,7 @@ export default function ChallengeByDatePage() {
   const toggleCompleted = async () => {
     if (!token) return;
 
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/completions`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/globalCompletions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
