@@ -18,7 +18,7 @@ interface Friend {
   profilePicture: string | null;
 }
 
-export default async function FriendSidebar() {
+export default function FriendSidebar() {
     const { isAuthenticated, token, user } = useAuth();
     const router = useRouter();
     const [friends, setFriends] = useState<Friend[]>([]);
