@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import FriendSidebar from '@/components/FriendSidebar';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE;
 
@@ -160,7 +161,8 @@ export default function MessageCenter() {
   if (loading) return <div className="text-center py-10">Loading...</div>;
 
   return (
-    <div className="max-w-4xl mx-auto py-8 px-4">
+    <>
+      <FriendSidebar/>
       <h1 className="text-3xl font-bold mb-6">Messages</h1>
       
       {/* Friend Requests Section */}
@@ -316,6 +318,6 @@ export default function MessageCenter() {
           )}
         </div>
       </div>
-    </div>
+    </>
   );
 }

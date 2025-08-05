@@ -9,10 +9,9 @@ const API_BASE = process.env.NEXT_PUBLIC_API_BASE;
 
 const tabs = [
   { name: 'Home', href: '/' },
-  { name: 'Challenges', href: '/challenges' },
-  { name: 'Account', href: '/account' },
   { name: 'Social', href: '/social' },
-  { name: 'Messages', href: '/social/message-center' }, // Added
+  { name: 'Messages', href: '/social/message-center' },
+  { name: 'Account', href: '/account' },
 ];
 
 export default function Navbar() {
@@ -35,15 +34,15 @@ export default function Navbar() {
   }, [isAuthenticated, token]);
 
   return (
-    <nav className="w-full bg-zinc-200 shadow-md backdrop-blur-md sticky top-0 z-10">
+    <nav className="w-full bg-indigo-950 shadow-md backdrop-blur-md sticky top-0 z-10">
       <div className="max-w-4xl mx-auto flex justify-between px-4 py-3">
-        <h1 className="text-xl font-bold text-gray-800">Get Out There</h1>
+        <h1 className="text-xl font-bold text-gray-200">ComfortZone</h1>
         <ul className="flex space-x-6">
           {tabs.map((tab) => (
             <li key={tab.name} className="relative">
               <Link
                 href={tab.href}
-                className={`text-gray-700 hover:text-blue-600 font-medium ${
+                className={`text-gray-200 hover:text-blue-600 font-medium ${
                   pathname === tab.href ? 'underline text-blue-700' : ''
                 }`}
               >

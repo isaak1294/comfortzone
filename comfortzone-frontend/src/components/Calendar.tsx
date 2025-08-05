@@ -21,8 +21,8 @@ const getDaysInMonth = (year: number, month: number) => {
 
 export default function Calendar({ year, month, completedDays, onDayClick }: CalendarProps) {
   return (
-    <div className="p-4 bg-white/80 rounded-xl shadow backdrop-blur-sm">
-      <h1 className="text-2xl font-bold text-center text-gray-800 mb-4">
+    <div className="p-4 bg-slate-600 rounded-xl shadow backdrop-blur-sm">
+      <h1 className="text-2xl font-bold text-center text-gray-200 mb-4">
         {dayjs(new Date(year, month)).format('MMMM YYYY')}
       </h1>
 
@@ -41,8 +41,8 @@ export default function Calendar({ year, month, completedDays, onDayClick }: Cal
               className={`aspect-square w-full rounded-md text-sm font-medium transition-all ${
                 isComplete
                   ? isRetro
-                    ? 'bg-yellow-400 text-white'
-                    : 'bg-green-500 text-white'
+                    ? 'bg-yellow-500 text-white'
+                    : 'bg-green-400 text-white'
                   : 'bg-gray-300 text-gray-800 hover:bg-gray-400'
               }`}
             >

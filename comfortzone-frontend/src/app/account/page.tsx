@@ -7,11 +7,15 @@ import { useAuth } from '@/context/AuthContext';
 export default function AccountPage() {
   const [about, setAbout] = useState('');
   const [editing, setEditing] = useState(false);
-  const [streak, setStreak] = useState(5);
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
   const [isReady, setIsReady] = useState(false);
 
   const { isAuthenticated, token, user, refreshUser } = useAuth();
+
+  // Dummy values – replace with real backend data
+  const currentStreak = 5;
+  const maxStreak = 12;
+  const totalCompletions = 42;
 
   useEffect(() => {
     if (user) {
@@ -72,31 +76,51 @@ export default function AccountPage() {
   }
 
   return (
-    <div className="max-w-xl mx-auto mt-12 bg-white/80 p-6 rounded-xl shadow-lg backdrop-blur-sm">
-      <h1 className="text-3xl font-bold text-center mb-6 text-gray-800">My Account</h1>
+    <div className="max-w-3xl mx-auto mt-12 bg-white/90 p-6 rounded-xl shadow-xl backdrop-blur">
+      {/* Top Section */}
+      <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 pb-6 border-b border-gray-300">
+        {/* Profile Pic & Username */}
+        <div className="flex flex-col items-center">
+          <label htmlFor="photo-upload" className="cursor-pointer">
+            <div className="w-32 h-32 rounded-full border-4 border-gray-300 overflow-hidden bg-gray-100">
+              {typeof profilePhoto === 'string' && profilePhoto.startsWith('data:image') ? (
+                <img src={profilePhoto} alt="Profile" className="object-cover w-full h-full" />
+              ) : user?.profilePicture ? (
+                <img src={user.profilePicture} alt="Profile" className="object-cover w-full h-full" />
+              ) : (
+                <div className="flex items-center justify-center h-full text-gray-500">Upload</div>
+              )}
+            </div>
+          </label>
+          <input
+            id="photo-upload"
+            type="file"
+            accept="image/*"
+            onChange={handlePhotoChange}
+            className="hidden"
+          />
+          <p className="mt-2 font-mono text-gray-600">@{user?.username || 'anonymous'}</p>
+        </div>
 
-      <div className="flex flex-col items-center gap-4 mb-6">
-        <label htmlFor="photo-upload" className="cursor-pointer">
-          <div className="w-32 h-32 rounded-full border-4 border-gray-300 overflow-hidden bg-gray-100">
-            {typeof profilePhoto === 'string' && profilePhoto.startsWith('data:image') ? (
-              <img src={profilePhoto} alt="Profile" className="object-cover w-full h-full" />
-            ) : user?.profilePicture ? (
-              <img src={user.profilePicture} alt="Profile" className="object-cover w-full h-full" />
-            ) : (
-              <div className="flex items-center justify-center h-full text-gray-500">Upload</div>
-            )}
+        {/* Stats */}
+        <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-4 text-center sm:text-left">
+          <div>
+            <h3 className="text-sm text-gray-500">Current Streak</h3>
+            <p className="text-xl font-bold text-green-600">{currentStreak}🔥</p>
           </div>
-        </label>
-        <input
-          id="photo-upload"
-          type="file"
-          accept="image/*"
-          onChange={handlePhotoChange}
-          className="hidden"
-        />
+          <div>
+            <h3 className="text-sm text-gray-500">Max Streak</h3>
+            <p className="text-xl font-bold text-orange-500">{maxStreak}</p>
+          </div>
+          <div>
+            <h3 className="text-sm text-gray-500">Total Completions</h3>
+            <p className="text-xl font-bold text-blue-500">{totalCompletions}</p>
+          </div>
+        </div>
       </div>
 
-      <div className="mb-6">
+      {/* Bottom Section */}
+      <div className="mt-6">
         <h2 className="text-xl font-semibold text-gray-700 mb-2">About Me</h2>
         {editing ? (
           <>
@@ -120,20 +144,6 @@ export default function AccountPage() {
             {about || <span className="text-gray-400 italic">Click to add a bio...</span>}
           </div>
         )}
-      </div>
-
-      <div className="mb-6">
-        <h2 className="text-xl font-semibold text-gray-700 mb-2">Current Streak</h2>
-        <p className="text-3xl font-bold text-green-600">{streak}🔥</p>
-      </div>
-
-      <div className="mb-6">
-        <h2 className="text-xl font-semibold text-gray-700 mb-2">Friends</h2>
-        <Link href="/friends">
-          <button className="w-full py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition">
-            View My Friends
-          </button>
-        </Link>
       </div>
     </div>
   );
